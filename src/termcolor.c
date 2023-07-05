@@ -35,6 +35,7 @@ int tcol_auto_color(FILE* stream) {
         tcol_override_color_checks(getenv("NO_COLOR") == NULL
             && isatty(fileno(stream)));
     #endif
+    return TermColorErrorNone;
 }
 
 const char* tcol_dyn(const char* color) {
