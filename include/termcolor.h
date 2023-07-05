@@ -12,6 +12,8 @@
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__) || defined(__WIN32) && !defined(__CYGWIN__)) && defined (ENABLE_VIRTUAL_TERMINAL_PROCESSING)
     #define TERMCOLOR_OS_WIN
     #include <windows.h>
+#elif defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+    #include <unistd.h>
 #endif
 
 /* A type describing an termcolor error. These are the only values returned by
@@ -50,6 +52,9 @@ int _tcol_color_generate(char *dst, size_t dstn, size_t *len, int rep,
 /* Returns a human-readable string describing the given libtermcolor error. */
 const char *tcol_errorstr(const enum term_color_error_t err);
 
+/* Automatically configures color output for the given stream. */
+int tcol_auto_color(FILE* stream /* ignored on Windows */);
+
 /* Parses a termcolor color string without the brackets.
 
    Parameters:
@@ -65,7 +70,7 @@ const char *tcol_errorstr(const enum term_color_error_t err);
 
    NOTE: color is not null-terminated as its length is given by k which shall be
    between 1 and 16.*/
- int tcol_color_parse(char *dst, size_t dstn, char color[16],
+int tcol_color_parse(char *dst, size_t dstn, char color[16],
                                       size_t k, size_t *len);
 
 /* By default libtermcolor will use color. However this behavior can be manually
@@ -73,7 +78,7 @@ const char *tcol_errorstr(const enum term_color_error_t err);
 
    Parameters
    - `enable_color`: Whether to enable "colorization" of the format string */
- void tcol_override_color_checks(bool enable_color);
+void tcol_override_color_checks(bool enable_color);
 
 /* Printfs the colorized format string to the specified stream.
 
@@ -83,7 +88,7 @@ const char *tcol_errorstr(const enum term_color_error_t err);
 
    Return Value:
    - `int`: One of the values `enum term_color_error_t` */
- int tcol_fprintf(FILE *stream, const char *fmt, ...);
+int tcol_fprintf(FILE *stream, const char *fmt, ...);
 
 /* Printfs the colorized format string to the standard output.
 
@@ -94,7 +99,7 @@ const char *tcol_errorstr(const enum term_color_error_t err);
 
    Return Value:
    - `int`: One of the values `enum term_color_error_t` */
- int tcol_printf(const char *fmt, ...);
+int tcol_printf(const char *fmt, ...);
 
 /* Snprintfs the colorized format string to the specified string stream.
 
@@ -106,6 +111,6 @@ const char *tcol_errorstr(const enum term_color_error_t err);
 
    Return Value:
    - `int`: One of the values `enum term_color_error_t`*/
- int tcol_snprintf(char *buffer, size_t N, const char *fmt, ...);
+int tcol_snprintf(char *buffer, size_t N, const char *fmt, ...);
 
 #endif /* _LIBTERMCOLOR_TERMCOLOR_H */

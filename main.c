@@ -6,6 +6,8 @@
 #include <stdio.h>
 
 int main(int argc, const char* argv[]) {
+    tcol_auto_color(stdout);
+    
     int result = tcol_printf("{+}{R}H{G}e{Y}l{C}l{M}o{W}, {G}w{C}o{R}r{B}l{W}d{Y}!{0}\n");
     if (result != TermColorErrorNone) {
         printf("error: %s\n", tcol_errorstr(result));

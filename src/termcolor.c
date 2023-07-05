@@ -20,6 +20,23 @@ inline const char *tcol_errorstr(const enum term_color_error_t err) {
     return tcol_errorstrs[err];
 }
 
+int tcol_auto_color(FILE* stream) {
+    #ifdef TERMCOLOR_OS_WIN
+        HANDLE output  = GetStdHandle(STD_OUTPUT_HANDLE); /* Console Output */
+        DWORD mode;
+        GetConsoleMode(output, &mode);
+        mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; /* Process ANSI Escape */
+        mode |= ENABLE_PROCESSED_OUTPUT; /* Process ASCII Escape */
+        WINBOOL set = !SetConsoleMode(output, mode);
+        if (set) { /* If we could not set the console mode, we cannot print it */
+            return TermColorErrorPrintingFailed;
+        }
+    #else
+        tcol_override_color_checks(getenv("NO_COLOR") == NULL
+            && isatty(fileno(stream)));
+    #endif
+}
+
 void tcol_override_color_checks(bool enable_color) {
     use_color = enable_color;
 }
@@ -124,11 +141,6 @@ int _tcol_color_generate(char *dst, size_t dstn, size_t *len, int rep,
 
 int tcol_color_parse(char *dst, size_t dstn, char color[16], size_t k,
                      size_t *len) {
-    if (!use_color) {
-        *len = 0;
-        return TermColorErrorNone;
-    }
-
     /* '0' signifies no color, i.e. a reset */
     if (k == 1 && *color == '0') {
         size_t j = 0;
@@ -148,7 +160,7 @@ int tcol_color_parse(char *dst, size_t dstn, char color[16], size_t k,
     size_t i;
     for (i = 0; i < k; i++) {
         switch (color[i]) {
-            /* Farily straightforward; just sets the flags corresponding to the
+            /* Fairly straightforward; just sets the flags corresponding to the
                color attributes. */
             case '+':
                 rep |= _termcolor_internal_color_BOLD;
@@ -201,6 +213,7 @@ int tcol_color_parse(char *dst, size_t dstn, char color[16], size_t k,
 
 static inline int tcol_fmt_parse(char *dst, size_t dstn, const char *src,
                                  size_t srcn) {
+
     /* Variables:
          i = index in source
          j = index in destination
@@ -252,14 +265,16 @@ static inline int tcol_fmt_parse(char *dst, size_t dstn, const char *src,
                     return TermColorErrorUnterminatedColor;
                 }
 
-                /* Create the escape sequence. */
-                size_t len = 0;
-                int status = tcol_color_parse(dst + j, dstn - j, color, k,
-                                              &len);
-                if (status != TermColorErrorNone) {
-                    return status;
+                if (use_color) {
+                    /* Create the escape sequence. */
+                    size_t len = 0;
+                    int status = tcol_color_parse(dst + j, dstn - j, color, k,
+                                                  &len);
+                    if (status != TermColorErrorNone) {
+                        return status;
+                    }
+                    j += len;
                 }
-                j += len;
             }
         } else {
             /* 3.A. If not, just write the character to the destination to
@@ -274,13 +289,14 @@ static inline int tcol_fmt_parse(char *dst, size_t dstn, const char *src,
 
 static inline int tcol_vsnprintf(char *stream, size_t N, const char *fmt,
                                  va_list ap) {
+
     /* Gets the length of the format string and calculates a length for the new
        format string to be created. */
     const size_t l = strlen(fmt);
     const size_t n = l * 2 + 16;
 
     /* Allocates and produces the new format string. */
-    char *buffer = malloc(n);
+    char* buffer = malloc(n);
     if (buffer == NULL) {
         return TermColorErrorAllocationFailed;
     }
@@ -311,7 +327,7 @@ static inline int tcol_vfprintf(FILE *stream, const char *fmt, va_list ap) {
     const size_t n = l * 2 + 16;
 
     /* Allocates and produces the new format string. */
-    char *buffer = malloc(n);
+    char* buffer = malloc(n);
     if (buffer == NULL) {
         return TermColorErrorAllocationFailed;
     }
@@ -320,17 +336,7 @@ static inline int tcol_vfprintf(FILE *stream, const char *fmt, va_list ap) {
         free(buffer);
         return status;
     }
-    #ifdef TERMCOLOR_OS_WIN
-        HANDLE output  = GetStdHandle(STD_OUTPUT_HANDLE); /* Console Output */
-        DWORD mode;
-        GetConsoleMode(output, &mode);
-        mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING; /* Process ANSI Escape */
-        mode |= ENABLE_PROCESSED_OUTPUT; /* Process ASCII Escape */
-        WINBOOL set = !SetConsoleMode(output, mode);
-        if (set) { /* If we could not set the console mode, we cannot print it */
-            return TermColorErrorPrintingFailed;
-        }
-    #endif
+
     /* Perform the printf itself. */
     if (vfprintf(stream, buffer, ap) < 0) {
         free(buffer);
