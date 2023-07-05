@@ -22,6 +22,8 @@ inline const char *tcol_errorstr(const enum term_color_error_t err) {
 
 int tcol_auto_color(FILE* stream) {
     #ifdef TERMCOLOR_OS_WIN
+        // not my code, not sure whose it is.
+        // if it's yours, let me know if you want it removed.
         HANDLE output  = GetStdHandle(STD_OUTPUT_HANDLE); /* Console Output */
         DWORD mode;
         GetConsoleMode(output, &mode);
