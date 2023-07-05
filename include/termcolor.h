@@ -55,6 +55,9 @@ const char *tcol_errorstr(const enum term_color_error_t err);
 /* Automatically configures color output for the given stream. */
 int tcol_auto_color(FILE* stream /* ignored on Windows */);
 
+/* Deletes a color if color is disabled. */
+const char* tcol_dyn(const char* color);
+
 /* Parses a termcolor color string without the brackets.
 
    Parameters:

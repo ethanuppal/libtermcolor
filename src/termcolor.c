@@ -37,6 +37,10 @@ int tcol_auto_color(FILE* stream) {
     #endif
 }
 
+const char* tcol_dyn(const char* color) {
+    return use_color ? color : "";
+}
+
 void tcol_override_color_checks(bool enable_color) {
     use_color = enable_color;
 }
