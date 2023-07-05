@@ -26,11 +26,13 @@ ${PRG}.a: ${OBJ}
 ${PRG}.so: ${OBJ}
 	${CC} -shared $< -o $@
 
+.PHONY: demo
 demo: ${PRG}.a
 	${CC} ${CFLAGS} main.c $< -o demo
 
 .c.o:
 	${CC} ${CFLAGS} $< -c -o ${<:.c=.o}
 
+.PHONY: clean
 clean:
 	rm -rf ${PRG}.a ${PRG}.so ${OBJ}
