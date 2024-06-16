@@ -1,7 +1,7 @@
 # libtermcolor
 
 > [!NOTE]
-> This library is archived and simply a record of code I write years ago. It is not intended for use nor as a reflection of my skill as a programmer. 
+> This library is archived and simply a record of code I wrote years ago. It is not intended for use nor as a reflection of my skill as a programmer. 
 
 `libtermcolor` allows you to add flair to your messages with colors, italics and other graphics. Currently it supports:
 
